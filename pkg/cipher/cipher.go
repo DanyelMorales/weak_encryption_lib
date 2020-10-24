@@ -2,11 +2,10 @@ package cipher
 
 import (
 	"errors"
+	"github.com/danyelmorales/weak_encryption_lib/pkg/alphabet"
+	"github.com/danyelmorales/weak_encryption_lib/pkg/symbol"
 	"log"
 	"math"
-
-	"github.com/danyelmorales/weakcipher/pkg/alphabet"
-	"github.com/danyelmorales/weakcipher/pkg/symbol"
 )
 
 // Cipher used
