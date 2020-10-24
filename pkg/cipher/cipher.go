@@ -3,6 +3,7 @@ package cipher
 import (
 	"errors"
 	"log"
+	"math"
 
 	"github.com/danyelmorales/weakcipher/pkg/alphabet"
 	"github.com/danyelmorales/weakcipher/pkg/symbol"
@@ -91,13 +92,14 @@ func (c *Cipher) EncryptFromStr(input string) string {
 	return newValue
 }
 
-// DecryptBruteForceFromStr decrypt
-func (c *Cipher) DecryptBruteForceFromStr(input string) string {
+// DecryptFromStr decrypt
+func (c *Cipher) DecryptFromStr(input string) string {
 	v, err := c.strToSym(input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	decrypted := c.DecryptBruteForce(v)
+	decrypted := c.Decrypt(v)
+	//decrypted := c.DecryptBruteForce(v)
 	newValue, errOfConversion := c.symToStr(decrypted)
 	if errOfConversion != nil {
 		log.Fatal(errOfConversion)
@@ -118,7 +120,7 @@ func (c *Cipher) DecryptBruteForce(input []symbol.Symbol) []symbol.Symbol {
 		if !v.IsSpace() {
 		bruteforce:
 			for {
-				a := int64(v) % c.Key
+				a := int64(v) % c.Key // determine if there is no exact division, do not pay attention
 				if a != 0 {
 					v += symbol.Symbol(c.Modulus)
 					log.Printf("attemping reverse modulus with: %d\n", v)
@@ -128,6 +130,28 @@ func (c *Cipher) DecryptBruteForce(input []symbol.Symbol) []symbol.Symbol {
 					break bruteforce
 				}
 			}
+		}
+		output = append(output, decrypted)
+	}
+	return output
+}
+
+//MMInverse Euclidean
+func (c *Cipher) Decrypt(input []symbol.Symbol) []symbol.Symbol {
+	multiplicativeInverse, err := ExplainExtendedGCD(c.Key, c.Modulus)
+	if err != nil {
+		panic(err)
+	}
+	output := make([]symbol.Symbol, len(input))
+	for _, v := range input {
+		var decrypted = v.Space()
+		if v == 0 {
+			continue
+		}
+		if !v.IsSpace() {
+			decrypted = v * symbol.Symbol(math.Abs(float64(multiplicativeInverse.MMInverse)))
+			decrypted = decrypted % symbol.Symbol(c.Modulus)
+			log.Printf("Decrypted: %d\n", decrypted)
 		}
 		output = append(output, decrypted)
 	}
